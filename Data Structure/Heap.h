@@ -13,7 +13,7 @@ private:
 
 	void swap(E* Heap, int pos1, int pos2)
 	{
-		int temp = Heap[pos1];
+		E temp = Heap[pos1];
 		Heap[pos1] = Heap[pos2];
 		Heap[pos2] = temp;
 	}

@@ -1,32 +1,40 @@
-﻿#include "Heap.h"
+﻿#include "HuffTree.h"
+#include "Heap.h"
+#include <iostream>
+#include <string>
+#include <algorithm>
+using namespace std;
 
-class Comp
-{
+template<typename E>
+class minTreeComp {
 public:
-	static bool prior(int a, int b)
+	static bool prior(HuffTree<E>* a, HuffTree<E>* b)
 	{
-		return a > b;
+		return a->weight() > b->weight();//权重越大优先级越高
 	}
 };
 
+template<typename E>
+HuffTree<E>* buildHuff(HuffTree<E>** TreeArray, int count)
+{
+	heap<HuffTree<E>*, minTreeComp<E>>* forest = new
+		heap<HuffTree<E>*, minTreeComp<E>>(TreeArray, count, count);
+
+	HuffTree<E>* temp1, *temp2, *temp3;
+	while (forest->size() > 1)
+	{
+		temp1 = forest->removefirst();
+		temp2 = forest->removefirst();
+		temp3 = new HuffTree<E>(temp1, temp2);
+		forest->insert(temp3);
+		delete temp1;
+		delete temp2;
+	}
+	return temp3;
+}
+
 int main()
 {
-	int *h = new int[15];
-	h[0] = 30;
-	h[1] = 20;
-	h[2] = 18;
-	h[3] = 5;
-	h[4] = 17;
-	h[5] = 26;
-	h[6] = 24;
-	h[7] = 28;
-	h[8] = 35;
-	h[9] = 32;
-	h[10] = 40;
-	heap<int, Comp> heap(h, 11, 15);
-	heap.insert(89);
-	heap.insert(3);
-	while (heap.size() != 0)
-		cout << heap.removefirst() << endl;
+
 	return 0;
 }
