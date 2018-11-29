@@ -7,14 +7,14 @@ private:
 	HuffNode<E>* Root;
 
 public:
-	HuffTree(E& val, int freq)
+	HuffTree(const E& val, int freq)
 	{
-		root = new LeafNode<E>(val, freq);
+		Root = new LeafNode<E>(val, freq);
 	}
 
 	HuffTree(HuffTree<E>* l, HuffTree<E>*r)
 	{
-		root = new IntlNode<E>(l->root(), r->root());
+		Root = new IntlNode<E>(l->root(), r->root());
 	}
 
 	~HuffTree(){}

@@ -136,6 +136,7 @@
     <ClInclude Include="GerneralTree.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="homework1.h" />
+    <ClInclude Include="Huffman.h" />
     <ClInclude Include="HuffNode.h" />
     <ClInclude Include="HuffTree.h" />
     <ClInclude Include="List.h" />
