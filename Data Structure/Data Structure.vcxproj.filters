@@ -110,5 +110,17 @@
     <ClInclude Include="Huffman.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Graph.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixGraph.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph_traverse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ListGraph.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

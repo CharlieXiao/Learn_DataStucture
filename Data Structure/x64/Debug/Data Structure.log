@@ -1,3 +1,2 @@
 ﻿  main.cpp
-c:\users\charlie\source\repos\learn_datastucture\data structure\main.cpp(89): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
   Data Structure.vcxproj -> C:\Users\Charlie\source\repos\Learn_DataStucture\x64\Debug\Data Structure.exe
