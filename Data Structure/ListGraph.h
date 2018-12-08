@@ -72,12 +72,12 @@ public:
 		}
 	}
 
-	int n() 
+	int n()
 	{
 		return numVertex;
 	}
 
-	int e() 
+	int e()
 	{
 		return numEdge;
 	}

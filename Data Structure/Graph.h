@@ -11,9 +11,9 @@ public:
 
 	virtual void Init(int n) = 0;
 
-	virtual int n() = 0;
+	virtual int n() = 0 ;
 
-	virtual int e() = 0;
+	virtual int e() = 0; 
 
 	virtual int first(int v) = 0;
 
