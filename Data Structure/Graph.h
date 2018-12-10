@@ -1,4 +1,6 @@
 #pragma once
+const int INF = 0x7f7f7f7f;
+
 class Graph {
 private:
 	void operator=(const Graph& a){}

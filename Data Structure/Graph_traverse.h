@@ -1,5 +1,6 @@
 #pragma once
 #include "Graph.h"
+#include "Heap.h"
 #include <iostream>
 #include <queue>
 using namespace std;
@@ -137,4 +138,125 @@ void topsort_recursive(Graph* G)
 			tophelp(G, i);
 		}
 	}
+}
+
+void PrintPath(int *P, int i,int a)
+{
+	if (i == a)
+	{
+		cout << a;
+		return;
+	}
+	PrintPath(P,P[i],a);
+	cout <<" -> "<< i;
+}
+
+//单源最短路径（Dijkstra）
+void Dijkstra(Graph* G, int *D,int *Pre,int a)//求从a点到其余各点的最短路径
+{
+	const int n = G->n();
+	int i,j,v,Min;
+
+	for (i = 0; i < n; i++)//将D初始化为无穷
+	{
+		D[i] = INF;
+		G->setMark(i, 0);//将所有节点设置为未访问
+	}
+	D[a] = 0;
+
+	for (i = 0; i < n; i++)
+	{
+		//找到第一个未被访问的节点
+		Min = INF, v = -1;
+
+		for (j = 0; j < n; j++)
+		{
+			if (G->getMark(j) == 0 && Min > D[j])
+			{
+				v = j;
+				Min = D[j];
+			}
+		}
+		
+		if (Min == INF)//代表所有的节点都被访问过了
+			return;
+
+		G->setMark(v, 1);
+
+		for (j = G->first(v); j < n; j = G->next(v, j))
+		{
+			if (D[j] > (D[v] + G->weight(v, j)))
+			{
+				D[j] = D[v] + G->weight(v, j);
+				Pre[j] = v;
+			}
+		}
+	}
+}
+
+class DijkElem {
+public:
+	int vertex;
+	int distance;
+	DijkElem()
+	{
+		vertex = -1;
+		distance = -1;
+	}
+
+	DijkElem(int v, int d)
+	{
+		vertex = v;
+		distance = d;
+	}
+};
+
+class Comp {
+public:
+	static bool prior(DijkElem a, DijkElem b)//距离越小优先级越高
+	{
+		return a.distance < b.distance;
+	}
+};
+
+void Dijkstra_PriorityQueue(Graph* G, int *D,int *Pre, int a)
+{
+	int i, v, w;
+	DijkElem* E = new DijkElem[G->e()], temp(0,a);
+	E[0] = temp;
+	heap<DijkElem, Comp> h(E,1,G->e());
+
+	for (i = 0; i < G->n(); i++)
+	{
+		D[i] = INF;
+		G->setMark(i,0);
+	}
+
+	D[a] = 0;
+
+	for (i = 0; i < G->n(); i++)
+	{
+		do
+		{
+			if (h.size() == 0)
+				return;
+			temp = h.removefirst();
+			v = temp.vertex;
+		} while (G->getMark(v) == 1);
+		G->setMark(v, 1);
+		if (D[v] == INF)
+			return;
+		for (w = G->first(v); w < G->n(); w = G->next(v, w))
+		{
+			if (D[w] > D[v] + G->weight(v, w))
+			{
+				D[w] = D[v] + G->weight(v, w);
+				temp.distance = D[w];
+				temp.vertex = w;
+				Pre[w] = v;
+				h.insert(temp);
+			}
+		}
+	}
+
 }
