@@ -1,316 +1,390 @@
 #include <iostream>
-#include <string>
+#include <queue>
 #include <algorithm>
+#include <string>
 using namespace std;
 
-/*
-输入格式：
-第1行：有1个整数m，表示接下来要插入的m条记录。
-第2行到第1+m行：每行表示一个插入记录。包括一个字符串cityName，两个整数x，y。分别表示城市名称和坐标。
-接下来n行：为不定行数的插入和删除操作。首数字为0代表删除，首数字为1代表插入，首数字为2代表结束插入、删除操作。
-接下来1行：1个字符，表示要进行检索的指定字母。
-最后1行：3个整数。x，y，d。x，y表示指定点的坐标，d表示距离。
-输出格式：
-完成插入和删除操作之后中序遍历BST并打印，每条记录包括一行，包括：城市名字
-打以指定字母打头的所有城市记录，每条记录包括一行，包括：城市名字，x和y坐标
-打印与指定点的距离在给定值之内的所有城市记录，每条记录包括一行，包括：城市名字，x和y坐标
+const int INF = 0x7f7f7f7f;
 
-*/
+struct DijkElem {
+	int vertax;
+	int distance;
 
-class CityInfo {
-public:
-	string name;
-	int x;
-	int y;
-	CityInfo* lc;
-	CityInfo* rc;
-
-	CityInfo(string n,int X,int Y,CityInfo* l = nullptr,CityInfo* r = nullptr)
-		:name(n),x(X),y(Y),lc(l),rc(r){}
-
-	CityInfo(const CityInfo & a)
+	bool operator>(const DijkElem & b) const
 	{
-		name = a.name;
-		x = a.x;
-		y = a.y;
-		lc = a.lc;
-		rc = a.rc;
+		return distance > b.distance;
 	}
 
-	void operator=(const CityInfo& a)
+	bool operator<(const DijkElem & b) const
 	{
-		name = a.name;
-		x = a.x;
-		y = a.y;
-		lc = a.lc;
-		rc = a.rc;
+		return distance < b.distance;
 	}
-
-	~CityInfo(){}
 };
 
-//城市坐标可以相同,名字不可以相同
-class CityDB {
+class Graph {
 private:
-	CityInfo* root;
-	int cnt;
+	int numVertax, numEdge;
+	int **matrix;
+	int *mark;
 
-	CityDB(const CityDB & a){}
-
-	void operator=(const CityDB & a){}
-
-	//一系列辅助递归函数
-
-	int CalcDis(int x1, int y1, int x2, int y2)
+	void bfs_help(int start)
 	{
-		return (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1);
-	}
-
-	bool Comp(string a, string b)
-	{
-		int l1 = a.length();
-		int l2 = b.length();
-		int i = 0;
-		while (i != l1 && i != l2)//逐位比较字符串的ASCII码
+		int v, w;
+		queue<int> q;
+		q.push(start);
+		setMark(start, 1);
+		while (!q.empty())
 		{
-			//可以比较时直接返回比较的值
-			if (a[i] < b[i])
-				return true;
-			else if (a[i] > b[i])
-				return false;
-			i++;//两个位置的字母相同的时候继续比较
-		}
-		if (l1 < l2)//遍历完两个字符串中的一个后判断长度,长度长的字符串较大
-			return true;
-		return false;
-	}
-	
-	//返回树中最小节点的指针
-	CityInfo* getMin(CityInfo* root)
-	{
-		if (root->lc != nullptr)
-			return getMin(root->lc);
-		else
-			return root;
-	}
-
-	CityInfo* deleteMin(CityInfo* root)
-	{
-		if (root->lc == nullptr)
-			return root->rc;
-		else
-		{
-			root->lc = deleteMin(root->lc);
-			return root;
-		}
-	}
-
-	void clear(CityInfo* root)
-	{
-		if (root != nullptr)
-		{
-			clear(root->lc);
-			clear(root->rc);
-			delete root;
-		}
-	}
-
-	void print(CityInfo* root)
-	{
-		if (root != nullptr)
-		{
-			print(root->lc);
-			cout << root->name << endl;
-			print(root->rc);
-		}
-	}
-
-	CityInfo* insert(CityInfo* root, string N, int X, int Y)
-	{
-		if (root == nullptr)
-			return new CityInfo(N,X,Y);
-		if (Comp(N, root->name))
-			root->lc = insert(root->lc, N, X, Y);
-		else
-			root->rc = insert(root->rc, N, X, Y);
-		return root;
-	}
-
-	CityInfo* remove(CityInfo* root, string n)
-	{
-		if (root == nullptr)
-			return nullptr;
-		else if (Comp(n, root->name))
-			root->lc = remove(root->lc, n);
-		else if (n == root->name)
-		{
-			CityInfo* temp = root;
-			if (temp->lc == nullptr)
+			v = q.front();
+			q.pop();
+			cout << v << " ";
+			for (w = first(v); w < numVertax; w = next(v, w))
 			{
-				root = root -> rc;
-				delete temp;
+				if (getMark(w) == 0)
+				{
+					setMark(w, 1);
+					q.push(w);
+				}
 			}
-			else if (temp->rc == nullptr)
+		}
+	}
+
+	void dfs_help(int start)
+	{
+		setMark(start, 1);
+		cout << start << " ";
+		for (int w = first(start); w < numVertax; w = next(start, w))
+		{
+			if (getMark(w) == 0)
 			{
-				root = root->lc;
-				delete temp;
+				dfs_help(w);
+			}
+		}
+	}
+
+	bool isCyclicGraph_help(int v, int pre)
+	{
+		setMark(v, 1);
+		for (int w = first(v); w < numVertax; w = next(v, w))
+		{
+			if (w == pre)
+				continue;
+			else if (w != pre && getMark(w) == 1)
+			{				
+				return true;
 			}
 			else
 			{
-				temp = getMin(root->rc);
-				root->name = temp->name;
-				root->x = temp->x;
-				root->y = temp->y;
-				root->rc = deleteMin(root->rc);
-				delete temp;
+				return isCyclicGraph_help(w,v);
 			}
 		}
-		else
-			root->rc = remove(root->rc, n);
-		return root;
-	}
-
-	void find_in_distance(CityInfo* root,int X,int Y, int dis)//此处dis实际为dis的平方，便于计算
-	{
-		//先序遍历
-		if (root != nullptr)
-		{
-			find_in_distance(root->lc, X, Y, dis);
-			if (CalcDis(root->x, root->y, X, Y) < dis)
-				cout << root->name << " " << root->x << " " << root->y << endl;
-			find_in_distance(root->rc, X, Y, dis);
-		}
-	}
-
-	void find_with_initial(CityInfo* root, char ch)
-	{
-		if (root == nullptr)
-			return;
-		if (ch > root->name[0])
-			find_with_initial(root->rc, ch);
-		else if (ch < root->name[0])
-			find_with_initial(root->lc, ch);
-		else
-		{
-			find_with_initial(root->lc, ch);
-			cout << root->name << " " << root->x << " " << root->y << endl;
-			find_with_initial(root->rc, ch);
-		}
+		return false;
 	}
 
 public:
-	CityDB()
-		:root(nullptr),cnt(0){}
-
-	~CityDB()
+	Graph(int numVert)
 	{
-		clear(root);
+		Init(numVert);
 	}
 
-	void clear()
+	~Graph()
 	{
-		clear(root);
-		cnt = 0;
+		delete[] mark;
+		for (int i = 0; i < numVertax; i++)
+			delete[] matrix[i];
+		delete[] matrix;
 	}
 
-	void insert(string N,int X,int Y)
+	void Init(int n)
 	{
-		root = insert(root, N, X, Y);
-		cnt++;
+		int i;
+		numVertax = n;
+		numEdge = 0;
+		mark = new int[n];
+		for (i = 0; i < n; i++)
+			mark[i] = 0;
+		matrix = (int**) new int*[n];
+		for (i = 0; i < n; i++)
+			matrix[i] = new int[n];
+		for (i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+				matrix[i][j] = 0;
 	}
 
-	void remove(string N)
+	int n()
 	{
-		root = remove(root, N);
-		cnt--;
+		return numVertax;
 	}
 
-	void print()
+	int e()
 	{
-		print(root);
+		return numEdge;
 	}
 
-	/*
-	CityInfo find(string n)//找到之后直接返回CityInfo
+	int first(int v)
 	{
-
-	}
-	*/
-
-	void find_in_distance(int X,int Y, int dis)
-	{
-		find_in_distance(root, X, Y, dis*dis);
+		for (int i = 0; i < numVertax; i++)
+			if (matrix[v][i] != 0)
+				return i;
+		return numVertax;
 	}
 
-	void find_with_initial(char ch)
+	int next(int v, int w)
 	{
-		find_with_initial(root, ch);
+		for (int i = w + 1; i < numVertax; i++)
+			if (matrix[v][i] != 0)
+				return i;
+		return numVertax;
+	}
+
+	void setEdge(int v1, int v2, int wt)
+	{
+		if (wt <= 0)
+		{
+			cout << "Illegal weight value" << endl;
+			system("pause");
+			exit(-1);
+		}
+		if (matrix[v1][v2] == 0)
+			numEdge++;
+		matrix[v1][v2] = wt;
+	}
+
+	void delEdge(int v1, int v2)
+	{
+		if (matrix[v1][v2] != 0)
+			numEdge--;
+		matrix[v1][v2] = 0;
+	}
+
+	bool isEdge(int v1, int v2)
+	{
+		return matrix[v1][v2] != 0;
+	}
+
+	int weight(int v1, int v2)
+	{
+		return matrix[v1][v2];
+	}
+
+	int getMark(int v)
+	{
+		return mark[v];
+	}
+
+	void setMark(int v, int val)
+	{
+		mark[v] = val;
+	}
+
+	bool isCyclicGraph()//判断图是否有环
+	{
+		bool flag;
+		for (int i = 0; i < numVertax; i++)
+		{
+			setMark(i, 0);
+		}
+		for (int i = 0; i < numVertax; i++)
+		{
+			if (getMark(i) == 0)
+			{
+				flag = isCyclicGraph_help(i, i);
+				if (flag)
+					return flag;
+			}
+		}
+		return flag;
+	}
+
+	void dfs(int start)
+	{
+		int v;
+
+		for (v = 0; v < numVertax; v++)
+		{
+			setMark(v, 0);
+		}
+
+		for (v = 0; v < numVertax; v++)
+		{
+			if (getMark(v) == 0)
+			{
+				dfs_help(v);
+			}
+		}
+		cout << endl;
+	}
+
+	void bfs(int start)
+	{
+		int v;
+
+		for (v = 0; v < numVertax; v++)
+		{
+			setMark(v, 0);
+		}
+
+		for (v = 0; v < numVertax; v++)
+		{
+			if (getMark(v) == 0)
+			{
+				bfs_help(v);
+			}
+		}
+		cout << endl;
+	}
+
+	void Dijkstra(int *D)
+	{
+		const int n = numVertax;
+		int i, j, v, Min;
+
+		for (i = 0; i < n; i++)//将D初始化为无穷
+		{
+			D[i] = INF;
+			setMark(i, 0);//将所有节点设置为未访问
+		}
+		D[0] = 0;
+
+		for (i = 0; i < n; i++)
+		{
+			//找到第一个未被访问的节点
+			Min = INF, v = -1;
+
+			for (j = 0; j < n; j++)
+			{
+				if (getMark(j) == 0 && Min > D[j])
+				{
+					v = j;
+					Min = D[j];
+				}
+			}
+
+			if (Min == INF)//代表所有的节点都被访问过了
+				return;
+
+			setMark(v, 1);
+
+			for (j = first(v); j < n; j = next(v, j))
+			{
+				if (D[j] > (D[v] + weight(v, j)))
+				{
+					D[j] = D[v] + weight(v, j);
+				}
+			}
+		}
+	}
+
+	void Dijkstra()
+	{
+		int *D = new int[numVertax];
+		for (int i = 0; i < numVertax; i++)
+		{
+			D[i] = INF;
+			setMark(i, 0);
+		}
+		D[0] = 0;
+
+		int i, j, v, m;
+		DijkElem temp;
+		temp.distance = 0;
+		temp.vertax = 0;
+		priority_queue<DijkElem,vector<DijkElem>,greater<DijkElem>> q;
+		q.push(temp);
+		for (i = 0; i < numVertax; i++)
+		{
+			do
+			{
+				if (q.empty())
+				{
+					goto Label;
+				}
+				temp = q.top();
+				q.pop();
+				v = temp.vertax;
+			} while (getMark(v) == 1);
+			setMark(v, 1);
+			for (j = first(v); j < numVertax; j = next(v, j))
+			{
+				if (D[j] > D[v] + weight(v, j))
+				{
+					D[j] = D[v] + weight(v, j);
+					temp.distance = D[j];
+					temp.vertax = j;
+					q.push(temp);
+				}
+			}
+		}
+
+	Label:
+		for (m = 1; m < numVertax; m++)
+		{
+			if (D[m] != INF)
+			{
+				cout << "0 " << m << " " << D[m] << endl;
+			}
+			else
+			{
+				cout << "0 " << m << " 0" << endl;
+			}
+		}
+		delete[] D;
+		return;
 	}
 };
 
 int main()
 {
-
 	/*
-	测试样例：
-	输入：
-	4
-	chongqing 1 1
-	chengdu 1 2
-	shenyang 2 2
-	changchun 2 3
-	1 shanghai 2 3
-	0 changchun
-	0 shenyang
-	1 beijing 2 2
-	2
-	c
-	0 0 3
-	*/
-	CityDB cdb;
-	int n, x, y, d;
-	char ch;
-	string a;
-	cin >> n;
-	for (int i = 0; i < n; i++)
+	priority_queue<DijkElem,vector<DijkElem>,greater<DijkElem>> q;
+	DijkElem a, b, c, d;
+	a.vertax = 0;
+	b.vertax = 0;
+	c.vertax = 0;
+	d.vertax = 0;
+	a.distance = 1;
+	b.distance = 1;
+	c.distance = 2;
+	d.distance = 7;
+	q.push(a);
+	q.push(b);
+	q.push(c);
+	q.push(d);
+	while (!q.empty())
 	{
-		cin >> a >> x >> y;
-		cdb.insert(a, x, y);
+		cout << q.top().distance << endl;
+		q.pop();
 	}
-	while (true)
+	*/
+	
+	int n, m,i,a,b,w;
+	cin >> n >> m;
+	Graph g(n);
+	for (i = 0; i < m; i++)
 	{
-		cin >> n;
-		if (n == 0)
+		cin >> a >> b >> w;
+		g.setEdge(a, b, w);
+		g.setEdge(b, a, w);
+	}
+	g.bfs(0);
+	g.dfs(0);
+	int *D = new int[g.n()];
+	g.Dijkstra(D);
+	for (int m = 1; m < g.n(); m++)
+	{
+		if (D[m] != INF)
 		{
-			cin >> a;
-			cdb.remove(a);
-		}
-		else if (n == 1)
-		{
-			cin >> a >> x >> y;
-			cdb.insert(a, x, y);
+			cout << "0 " << m << " " << D[m] << endl;
 		}
 		else
-			break;
+		{
+			cout << "0 " << m << " 0" << endl;
+		}
 	}
-	cdb.print();
-	cin >> ch;
-	cdb.find_with_initial(ch);
-	cin >> x >> y >> d;
-	cdb.find_in_distance(x, y, d);
+	//g.Dijkstra();
+	if (g.isCyclicGraph())
+		cout << "YES" << endl;
+	else
+		cout << "NO" << endl;
 	return 0;
 }
-
-/*
-输出：
-	beijing
-	chengdu
-	chongqing
-	shanghai
-	chengdu 1 2
-	chongqing 1 1
-	beijing 2 2
-	chengdu 1 2
-	chongqing 1 1
-
-*/

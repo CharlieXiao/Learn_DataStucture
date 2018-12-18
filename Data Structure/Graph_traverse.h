@@ -260,3 +260,89 @@ void Dijkstra_PriorityQueue(Graph* G, int *D,int *Pre, int a)
 	}
 
 }
+
+void Prim(Graph* G, int *D, int s)//D代表节点到最小生成树的最短距离
+{
+	int *V = new int[G->n()], i, w,v,Min;
+	for (i = 0; i < G->n(); i++)
+	{
+		D[i] = INF;
+		G->setMark(i, 0);
+	}
+	D[s] = 0;
+	for (i = 0; i < G->n(); i++)
+	{
+		Min = INF;
+		v = -1;
+		for (int j = 0; j < G->n(); j++)
+		{
+			if (G->getMark(j) == 0 && Min > D[j])
+			{
+				Min = D[j];
+				v = j;
+			}
+		}
+		if (v == -1 && Min == INF)
+			break;
+		G->setMark(v, 1);
+		if (v != s)
+			cout << "Add edge " << V[v] << " to " << v << endl;
+		for (w = G->first(v); w < G->n(); w = G->next(v, w))
+		{
+			if (D[w] > G->weight(v, w))
+			{
+				D[w] = G->weight(v, w);
+				V[w] = v;
+			}
+		}
+	}
+	delete[] V;
+}
+
+void Prim_PriorityQueue(Graph* G,int *D,int s)
+{
+	int *V = new int[G->n()],i,v,w;
+	DijkElem* E = new DijkElem[G->e()],temp(0,s);
+	E[0] = temp;
+	heap<DijkElem, Comp> h(E,1,G->e());
+
+	for (i = 0; i < G->n(); i++)
+	{
+		D[i] = INF;
+		G->setMark(i, 0);
+	}
+	D[s] = 0;
+
+	for (i = 0; i < G->n(); i++)
+	{
+		do
+		{
+			if (h.size() == 0)
+			{
+				delete[] V;
+				delete[] E;
+				return;
+			}
+			temp = h.removefirst();
+			v = temp.vertex;
+		} while (G->getMark(v) == 1);
+		G->setMark(v, 1);
+		if(v!=s)
+			cout << "Add edge " << V[v] << " to " << v << endl;
+		if (D[v] == INF)
+			break;
+		for (w = G->first(v); w < G->n(); w = G->next(v, w))
+		{
+			if (D[w] > G->weight(v, w))
+			{
+				D[w] = G->weight(v, w);
+				V[w] = v;
+				temp.distance = D[w];
+				temp.vertex = w;
+				h.insert(temp);
+			}
+		}
+	}
+	delete[] V;
+	delete[] E;
+}
